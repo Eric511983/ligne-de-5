@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Ligne de 5</string>
+    <string name="title_activity_main">Ligne de 5</string>
+    <string name="package_name">com.eric511983.lignede5</string>
+    <string name="custom_url_scheme">com.eric511983.lignede5</string>
+</resources>
