@@ -71,9 +71,9 @@ Deux options, à trancher ensemble :
 - **Game Center (iOS) / Google Play Games Services (Android)** — solution rapide, classements et sauvegarde du meilleur score fournis nativement, sans backend à héberger
 - **Backend maison** (Firebase, Supabase, etc.) — plus de travail, mais un classement unifié entre iOS et Android au même endroit plutôt que deux classements séparés
 
-### 4. Améliorations visuelles possibles (déjà évoquées, non implémentées)
-- Défi du jour (grille de départ différente chaque jour)
-- Tutoriel intégré pour les premiers coups
+### 4. Améliorations visuelles possibles
+- ~~Défi du jour~~ — écarté, pas de nécessité identifiée
+- ~~Tutoriel intégré pour les premiers coups~~ — fait (overlay en 5 étapes, rejouable via bouton "?")
 
 ## Préférences de travail d'Eric
 
