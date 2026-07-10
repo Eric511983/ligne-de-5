@@ -170,6 +170,33 @@
     color: var(--text-muted);
     cursor: pointer;
   }
+  .lock-badge {
+    font-size: 0.75rem;
+    line-height: 1;
+  }
+  .ad-placeholder {
+    margin-top: 14px;
+    width: 100%;
+    max-width: 360px;
+    border: 1px dashed var(--brass-dim);
+    border-radius: 10px;
+    padding: 10px 14px;
+    text-align: center;
+    font-size: 0.72rem;
+    color: var(--graphite);
+    display: none;
+  }
+  .ad-placeholder.active { display: block; }
+  .link-btn {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    color: var(--brass-bright);
+    font-size: 0.72rem;
+    text-decoration: underline;
+    cursor: pointer;
+  }
   .choice-panel {
     margin-top: 12px;
     background: var(--wood-panel);
@@ -337,6 +364,65 @@
     padding: 6px 4px;
     box-shadow: none;
   }
+  .paywall-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15,9,4,0.72);
+    align-items: center;
+    justify-content: center;
+    z-index: 65;
+    padding: 16px;
+  }
+  .paywall-overlay.active { display: flex; }
+  .paywall-card {
+    background: var(--wood-panel-light);
+    border: 1px solid var(--brass-dim);
+    border-radius: 14px;
+    padding: 24px 26px;
+    max-width: 360px;
+    width: 100%;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    text-align: center;
+  }
+  .paywall-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--brass-bright);
+    margin-bottom: 10px;
+  }
+  .paywall-benefits {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 14px;
+    text-align: left;
+    font-size: 0.84rem;
+    color: var(--text-primary);
+    line-height: 1.9;
+  }
+  .paywall-benefits li::before {
+    content: '✓ ';
+    color: var(--marble-teal-bright);
+    font-weight: 600;
+  }
+  .paywall-price {
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    margin-bottom: 16px;
+  }
+  .paywall-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .paywall-status {
+    min-height: 1.2em;
+    font-size: 0.76rem;
+    color: var(--text-muted);
+    margin-top: 8px;
+  }
 </style>
 </head>
 <body>
@@ -365,10 +451,14 @@
     <label class="hint-toggle">
       <input type="checkbox" id="hintToggle">
       Afficher les coups possibles
+      <span class="lock-badge" id="hintLock">🔒</span>
     </label>
   </div>
   <div class="message" id="message"></div>
   <div id="choicePanel" class="choice-panel"></div>
+  <div id="adPlaceholder" class="ad-placeholder">
+    Emplacement publicitaire — <button class="link-btn" id="adRemoveLink" type="button">Passer premium pour retirer les pubs</button>
+  </div>
 
   <div id="gameOverOverlay" class="stamp-overlay">
     <div class="stamp-ring">
@@ -388,6 +478,23 @@
         <div class="tutorial-dots" id="tutorialDots"></div>
         <button id="tutorialNext" type="button">Suivant</button>
       </div>
+    </div>
+  </div>
+
+  <div id="paywallOverlay" class="paywall-overlay">
+    <div class="paywall-card">
+      <div class="paywall-title">Version Premium</div>
+      <ul class="paywall-benefits">
+        <li>Affiche les coups possibles à tout moment</li>
+        <li>Aucune publicité</li>
+      </ul>
+      <div class="paywall-price">Abonnement mensuel — prix à venir</div>
+      <div class="paywall-actions">
+        <button id="paywallSubscribe" type="button">S'abonner</button>
+        <button id="paywallRestore" class="secondary" type="button">Restaurer mes achats</button>
+        <button id="paywallClose" class="tutorial-skip" type="button">Plus tard</button>
+      </div>
+      <div class="paywall-status" id="paywallStatus"></div>
     </div>
   </div>
 
@@ -473,6 +580,14 @@
   const tutorialDots = document.getElementById('tutorialDots');
   const tutorialNext = document.getElementById('tutorialNext');
   const tutorialSkip = document.getElementById('tutorialSkip');
+  const hintLock = document.getElementById('hintLock');
+  const adPlaceholder = document.getElementById('adPlaceholder');
+  const adRemoveLink = document.getElementById('adRemoveLink');
+  const paywallOverlay = document.getElementById('paywallOverlay');
+  const paywallSubscribe = document.getElementById('paywallSubscribe');
+  const paywallRestore = document.getElementById('paywallRestore');
+  const paywallClose = document.getElementById('paywallClose');
+  const paywallStatus = document.getElementById('paywallStatus');
 
   const initialPoints = [
     [0,0],[0,1],[0,2],[0,3],[1,3],[2,3],[3,3],[3,2],[3,1],[3,0],
@@ -1019,6 +1134,79 @@
   tutorialSkip.addEventListener('click', closeTutorial);
   helpBtn.addEventListener('click', openTutorial);
 
+  // Gestion de l'abonnement premium (débloque les coups possibles + retire les pubs).
+  // TODO: remplacer subscribe()/restore() par de véritables appels Play Billing (Android)
+  // et StoreKit (iOS) une fois les comptes développeur validés et les produits créés
+  // dans les consoles respectives. Pour l'instant, subscribe() simule un achat réussi
+  // localement afin de pouvoir tester le parcours complet.
+  const PremiumManager = (function () {
+    const KEY = 'ligne5Premium';
+    function isPremium() {
+      try { return localStorage.getItem(KEY) === '1'; } catch (e) { return false; }
+    }
+    function setPremium(value) {
+      try { localStorage.setItem(KEY, value ? '1' : '0'); } catch (e) {}
+    }
+    function subscribe() {
+      setPremium(true);
+      return Promise.resolve(true);
+    }
+    function restore() {
+      return Promise.resolve(isPremium());
+    }
+    return { isPremium, setPremium, subscribe, restore };
+  })();
+
+  function updatePremiumUI() {
+    const premium = PremiumManager.isPremium();
+    hintLock.style.display = premium ? 'none' : 'inline';
+    adPlaceholder.classList.toggle('active', !premium);
+    if (!premium && hintToggle.checked) {
+      hintToggle.checked = false;
+      render();
+    }
+  }
+
+  function openPaywall() {
+    paywallStatus.textContent = '';
+    paywallOverlay.classList.add('active');
+  }
+
+  function closePaywall() {
+    paywallOverlay.classList.remove('active');
+  }
+
+  hintToggle.addEventListener('click', (e) => {
+    if (!PremiumManager.isPremium()) {
+      e.preventDefault();
+      openPaywall();
+    }
+  });
+
+  adRemoveLink.addEventListener('click', openPaywall);
+
+  paywallSubscribe.addEventListener('click', () => {
+    paywallStatus.textContent = 'Traitement en cours…';
+    PremiumManager.subscribe().then((success) => {
+      if (success) {
+        updatePremiumUI();
+        paywallStatus.textContent = '';
+        closePaywall();
+        messageEl.textContent = 'Abonnement premium activé.';
+      }
+    });
+  });
+
+  paywallRestore.addEventListener('click', () => {
+    paywallStatus.textContent = 'Recherche des achats précédents…';
+    PremiumManager.restore().then((premium) => {
+      updatePremiumUI();
+      paywallStatus.textContent = premium ? 'Abonnement restauré.' : 'Aucun achat trouvé.';
+    });
+  });
+
+  paywallClose.addEventListener('click', closePaywall);
+
   function startGame() {
     occupied = new Set(initialPoints.map(([x, y]) => key(x, y)));
     completedLines = [];
@@ -1041,6 +1229,7 @@
   hintToggle.addEventListener('change', render);
 
   startGame();
+  updatePremiumUI();
 
   try {
     if (!localStorage.getItem('ligne5TutorialSeen')) openTutorial();
