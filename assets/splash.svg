@@ -1,0 +1,23 @@
+<svg width="2732" height="2732" viewBox="0 0 2732 2732" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="wood" cx="50%" cy="42%" r="70%">
+      <stop offset="0%" stop-color="#5C3A22"/>
+      <stop offset="55%" stop-color="#45291A"/>
+      <stop offset="100%" stop-color="#211106"/>
+    </radialGradient>
+    <radialGradient id="marbleTeal" cx="35%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#A8F5E6"/>
+      <stop offset="45%" stop-color="#2FBFA6"/>
+      <stop offset="100%" stop-color="#146B5C"/>
+    </radialGradient>
+    <linearGradient id="brassRing" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E8C468"/>
+      <stop offset="50%" stop-color="#C9A227"/>
+      <stop offset="100%" stop-color="#8C6D1F"/>
+    </linearGradient>
+  </defs>
+  <rect width="2732" height="2732" fill="url(#wood)"/>
+  <circle cx="1366" cy="1180" r="180" fill="none" stroke="url(#brassRing)" stroke-width="16"/>
+  <circle cx="1366" cy="1180" r="135" fill="url(#marbleTeal)" stroke="rgba(0,0,0,0.3)" stroke-width="3"/>
+  <text x="1366" y="1480" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-weight="700" font-size="150" fill="#E8C468" letter-spacing="4">Ligne de 5</text>
+</svg>

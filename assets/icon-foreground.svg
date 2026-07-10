@@ -1,0 +1,16 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="marbleTeal" cx="35%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#A8F5E6"/>
+      <stop offset="45%" stop-color="#2FBFA6"/>
+      <stop offset="100%" stop-color="#146B5C"/>
+    </radialGradient>
+    <linearGradient id="brassRing" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E8C468"/>
+      <stop offset="50%" stop-color="#C9A227"/>
+      <stop offset="100%" stop-color="#8C6D1F"/>
+    </linearGradient>
+  </defs>
+  <circle cx="512" cy="512" r="298" fill="none" stroke="url(#brassRing)" stroke-width="24"/>
+  <circle cx="512" cy="512" r="225" fill="url(#marbleTeal)" stroke="rgba(0,0,0,0.3)" stroke-width="4"/>
+</svg>
