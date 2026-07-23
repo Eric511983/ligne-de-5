@@ -11,13 +11,10 @@ import com.google.android.gms.ads.AdSize;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.MobileAds;
 
-// TODO: les ID de test Google utilisés ici (constantes ci-dessous) doivent être
-// remplacés par les véritables ID AdMob une fois le compte créé, avant toute
-// publication réelle. Ne jamais publier avec des ID de test.
 @CapacitorPlugin(name = "AdMob")
 public class AdMobPlugin extends Plugin {
 
-    private static final String TEST_BANNER_AD_UNIT_ID = "ca-app-pub-3940256099942544/6300978111";
+    private static final String BANNER_AD_UNIT_ID = "ca-app-pub-7941587247115154/2563410118";
     private AdView adView;
     private boolean initialized = false;
 
@@ -32,7 +29,7 @@ public class AdMobPlugin extends Plugin {
 
     @PluginMethod
     public void showBanner(PluginCall call) {
-        String adUnitId = call.getString("adUnitId", TEST_BANNER_AD_UNIT_ID);
+        String adUnitId = call.getString("adUnitId", BANNER_AD_UNIT_ID);
         getActivity()
             .runOnUiThread(() -> {
                 if (adView != null) {
