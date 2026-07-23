@@ -1,4 +1,4 @@
-package com.eric511983.lignede5;
+package com.lignede5;
 
 import android.os.Bundle;
 import com.getcapacitor.BridgeActivity;

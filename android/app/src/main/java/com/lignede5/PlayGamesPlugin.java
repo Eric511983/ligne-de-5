@@ -1,4 +1,4 @@
-package com.eric511983.lignede5;
+package com.lignede5;
 
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
