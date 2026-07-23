@@ -9,6 +9,7 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         registerPlugin(PlayGamesPlugin.class);
+        registerPlugin(AdMobPlugin.class);
         super.onCreate(savedInstanceState);
         PlayGamesSdk.initialize(this);
     }

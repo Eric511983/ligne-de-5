@@ -1162,10 +1162,40 @@
     return { isPremium, setPremium, subscribe, restore };
   })();
 
+  // Bannière publicitaire AdMob (Android uniquement). Sur les autres plateformes
+  // (aperçu web, futur iOS), on retombe sur l'emplacement statique dans la page.
+  const AdMobManager = (function () {
+    function getPlugin() {
+      if (!window.Capacitor || !window.Capacitor.isNativePlatform || !window.Capacitor.isNativePlatform()) return null;
+      return (window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob) || null;
+    }
+    function isNative() {
+      return !!getPlugin();
+    }
+    function init() {
+      const plugin = getPlugin();
+      if (plugin) plugin.initialize().catch(() => {});
+    }
+    function show() {
+      const plugin = getPlugin();
+      if (plugin) plugin.showBanner().catch(() => {});
+    }
+    function hide() {
+      const plugin = getPlugin();
+      if (plugin) plugin.hideBanner().catch(() => {});
+    }
+    return { isNative, init, show, hide };
+  })();
+
   function updatePremiumUI() {
     const premium = PremiumManager.isPremium();
     hintLock.style.display = premium ? 'none' : 'inline';
-    adPlaceholder.classList.toggle('active', !premium);
+    if (AdMobManager.isNative()) {
+      adPlaceholder.classList.remove('active');
+      if (premium) AdMobManager.hide(); else AdMobManager.show();
+    } else {
+      adPlaceholder.classList.toggle('active', !premium);
+    }
     if (!premium && hintToggle.checked) {
       hintToggle.checked = false;
       render();
@@ -1273,6 +1303,7 @@
   hintToggle.addEventListener('change', render);
 
   startGame();
+  AdMobManager.init();
   updatePremiumUI();
   LeaderboardManager.signIn();
 
