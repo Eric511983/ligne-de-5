@@ -448,6 +448,7 @@
     <button id="undoBtn" class="secondary" type="button">Annuler le dernier coup</button>
     <button id="soundToggle" class="secondary" type="button">Son : activé</button>
     <button id="helpBtn" class="help-btn" type="button" title="Comment jouer">?</button>
+    <button id="leaderboardBtn" class="secondary" type="button">Classement</button>
     <label class="hint-toggle">
       <input type="checkbox" id="hintToggle">
       Afficher les coups possibles
@@ -588,6 +589,7 @@
   const paywallRestore = document.getElementById('paywallRestore');
   const paywallClose = document.getElementById('paywallClose');
   const paywallStatus = document.getElementById('paywallStatus');
+  const leaderboardBtn = document.getElementById('leaderboardBtn');
 
   const initialPoints = [
     [0,0],[0,1],[0,2],[0,3],[1,3],[2,3],[3,3],[3,2],[3,1],[3,0],
@@ -853,6 +855,9 @@
       finalScoreEl.textContent = score;
       gameOverOverlay.classList.add('active');
       playBlockedSound();
+      LeaderboardManager.signIn().then((signedIn) => {
+        if (signedIn) LeaderboardManager.submitScore(score);
+      });
     }
   }
 
@@ -1207,6 +1212,45 @@
 
   paywallClose.addEventListener('click', closePaywall);
 
+  // Classement Google Play Games Services (Android uniquement pour l'instant ;
+  // Game Center pour iOS viendra avec le portage iOS). Le plugin natif "PlayGames"
+  // n'existe que sur Android, d'où la vérification isNativePlatform() à chaque appel.
+  const LEADERBOARD_ID = 'CgkIzeuR3IoREAIQAg';
+  const LeaderboardManager = (function () {
+    function getPlugin() {
+      if (!window.Capacitor || !window.Capacitor.isNativePlatform || !window.Capacitor.isNativePlatform()) return null;
+      return (window.Capacitor.Plugins && window.Capacitor.Plugins.PlayGames) || null;
+    }
+    function signIn() {
+      const plugin = getPlugin();
+      if (!plugin) return Promise.resolve(false);
+      return plugin
+        .signIn()
+        .then((res) => !!(res && res.signedIn))
+        .catch(() => false);
+    }
+    function submitScore(value) {
+      const plugin = getPlugin();
+      if (!plugin) return;
+      plugin.submitScore({ leaderboardId: LEADERBOARD_ID, score: value }).catch(() => {});
+    }
+    function show() {
+      const plugin = getPlugin();
+      if (!plugin) {
+        messageEl.textContent = 'Le classement est disponible dans la version Android.';
+        return;
+      }
+      plugin.showLeaderboard({ leaderboardId: LEADERBOARD_ID }).catch(() => {
+        messageEl.textContent = "Impossible d'ouvrir le classement pour le moment.";
+      });
+    }
+    return { signIn, submitScore, show };
+  })();
+
+  leaderboardBtn.addEventListener('click', () => {
+    LeaderboardManager.signIn().then(() => LeaderboardManager.show());
+  });
+
   function startGame() {
     occupied = new Set(initialPoints.map(([x, y]) => key(x, y)));
     completedLines = [];
@@ -1230,6 +1274,7 @@
 
   startGame();
   updatePremiumUI();
+  LeaderboardManager.signIn();
 
   try {
     if (!localStorage.getItem('ligne5TutorialSeen')) openTutorial();
